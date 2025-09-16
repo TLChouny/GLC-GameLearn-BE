@@ -29,26 +29,35 @@ const app = express();
 // Connect to database
 connectDB();
 
-// Security middleware
-app.use(helmet());
-
 // CORS: allow both local and production FE domains
 const allowedOrigins = [
   (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''),
   'https://glc-game-learn-fe.vercel.app',
+  'http://localhost:5173',
+  'http://127.0.0.1:5173',
 ];
 
-app.use(cors({
+// Place CORS BEFORE other middleware (helmet, rate limiter...) so preflight succeeds
+const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
-    if (!origin) return callback(null, true); // allow server-to-server / curl
-    const isAllowed = allowedOrigins.includes(origin.replace(/\/$/, ''));
-    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+    if (!origin) return callback(null, true);
+    const normalizedOrigin = (origin || '').replace(/\/$/, '');
+    const isAllowed = allowedOrigins.includes(normalizedOrigin);
+    if (!isAllowed) {
+      console.warn(`[CORS] Blocked origin: ${normalizedOrigin}`);
+    }
+    callback(null, isAllowed);
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  // Do NOT lock allowedHeaders; let the library reflect request headers automatically
   optionsSuccessStatus: 204,
-}));
+};
+
+app.use(cors(corsOptions));
+
+// Security middleware (after CORS)
+app.use(helmet());
 
 // Rate limiting
 const limiter = rateLimit({
