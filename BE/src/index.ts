@@ -62,6 +62,8 @@ app.use(cors(corsOptions));
 app.use(helmet());
 
 // Rate limiting
+// Behind Render/Cloudflare; trust proxy so rate limiter uses X-Forwarded-For
+app.set('trust proxy', 1);
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
   max: 100, // limit each IP to 100 requests per windowMs
@@ -87,6 +89,15 @@ app.get('/health', (req: Request, res: Response) => {
     success: true,
     message: 'Server is running',
     timestamp: new Date().toISOString()
+  });
+});
+
+// Root route: helpful for uptime checks or direct visits
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({
+    success: true,
+    message: 'GLC-GameLearn-BE API',
+    endpoints: ['/api/users', '/api/games', '/api/items', '/api/rankings', '/api/auth', '/health']
   });
 });
 
