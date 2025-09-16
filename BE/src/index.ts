@@ -31,10 +31,24 @@ connectDB();
 
 // Security middleware
 app.use(helmet());
+
+// CORS: allow both local and production FE domains
+const allowedOrigins = [
+  (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''),
+  'https://glc-game-learn-fe.vercel.app',
+];
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-  credentials: true
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true); // allow server-to-server / curl
+    const isAllowed = allowedOrigins.includes(origin.replace(/\/$/, ''));
+    callback(isAllowed ? null : new Error('Not allowed by CORS'), isAllowed);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
 }));
+app.options('*', cors());
 
 // Rate limiting
 const limiter = rateLimit({
