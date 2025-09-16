@@ -47,8 +47,8 @@ app.use(cors({
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 204,
 }));
-app.options('*', cors());
 
 // Rate limiting
 const limiter = rateLimit({
