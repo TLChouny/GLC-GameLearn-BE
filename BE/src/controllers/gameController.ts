@@ -152,11 +152,12 @@ export const updateMatchStatus = async (req: Request, res: Response) => {
         await User.findByIdAndUpdate(
           winner,
           { 
-            $inc: { points: gameChallenge.rewardPoints },
-            $inc: { 'stats.gamesWon': 1 }
+            $inc: { 
+              points: gameChallenge.rewardPoints,
+              'stats.gamesWon': 1
+            }
           }
         );
-
         // Update all players' games played count
         await User.updateMany(
           { _id: { $in: match.players } },
