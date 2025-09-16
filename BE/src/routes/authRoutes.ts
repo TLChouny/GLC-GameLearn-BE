@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express';
+import crypto from 'crypto';
 import jwt from 'jsonwebtoken';
 import passport from '../config/passport';
 import  User  from '../models/User';
@@ -33,6 +34,22 @@ router.get(
     res.redirect(`${frontendUrl}/auth/callback?token=${token}&success=true`);
   }
 );
+
+// --- Facebook Data Deletion (required by Facebook) ---
+// Spec: Respond with { url, confirmation_code }
+router.post('/facebook/data-deletion', (req: Request, res: Response) => {
+  const confirmationCode = crypto.randomBytes(8).toString('hex');
+  const statusUrl = `${frontendUrl}/data-deletion.html?code=${confirmationCode}`;
+  res.json({ url: statusUrl, confirmation_code: confirmationCode });
+});
+
+// Optional: status check endpoint if Facebook or user revisits with code
+router.get('/facebook/data-deletion-status', (req: Request, res: Response) => {
+  const code = req.query.code as string | undefined;
+  if (!code) return res.status(400).json({ success: false, message: 'Missing code' });
+  // In real implementation, look up deletion job by code and return its status
+  res.json({ success: true, code, status: 'received' });
+});
 
 // --- GET USER (from JWT) ---
 router.get('/me', async (req: Request, res: Response) => {

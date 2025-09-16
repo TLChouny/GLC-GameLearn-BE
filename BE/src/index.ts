@@ -5,7 +5,7 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
-// Load environment variables FIRST
+// Load environment variables BEFORE importing modules that read process.env
 dotenv.config();
 
 // Import routes

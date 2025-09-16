@@ -1,6 +1,7 @@
 import passport from 'passport';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
+import bcrypt from 'bcryptjs';
 import  User  from '../models/User';
 
 const backendUrl = process.env.BACKEND_URL || 'http://localhost:5000';
@@ -19,12 +20,22 @@ passport.use(
 
         let user = await User.findOne({ email });
         if (!user) {
+          const baseUserName = (profile.displayName || email.split('@')[0] || 'user')
+            .replace(/\s+/g, '')
+            .toLowerCase();
+          const userName = `${baseUserName}-${profile.id?.slice(-4) || 'gl'}`;
+          const randomPassword = Math.random().toString(36).slice(-12);
+          const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
           user = new User({
-            name: profile.displayName,
+            userName,
             email,
-            role: 'user',
+            password: hashedPassword,
+            gender: 'other',
+            address: 'N/A',
+            role: 'student',
             avatar: profile.photos?.[0]?.value,
-            verified: true,
+            isVerified: true,
             oauth: {
               googleId: profile.id,
               provider: 'google',
@@ -55,12 +66,22 @@ passport.use(
 
         let user = await User.findOne({ email });
         if (!user) {
+          const baseUserName = (profile.displayName || email.split('@')[0] || 'user')
+            .replace(/\s+/g, '')
+            .toLowerCase();
+          const userName = `${baseUserName}-${profile.id?.slice(-4) || 'fb'}`;
+          const randomPassword = Math.random().toString(36).slice(-12);
+          const hashedPassword = await bcrypt.hash(randomPassword, 10);
+
           user = new User({
-            name: profile.displayName,
+            userName,
             email,
-            role: 'user',
+            password: hashedPassword,
+            gender: 'other',
+            address: 'N/A',
+            role: 'student',
             avatar: profile.photos?.[0]?.value,
-            verified: true,
+            isVerified: true,
             oauth: {
               facebookId: profile.id,
               provider: 'facebook',
