@@ -5,6 +5,9 @@ import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 
+// Load environment variables FIRST
+dotenv.config();
+
 // Import routes
 import userRoutes from './routes/userRoutes';
 import gameRoutes from './routes/gameRoutes';
@@ -12,7 +15,7 @@ import itemRoutes from './routes/itemRoutes';
 import rankingRoutes from './routes/rankingRoutes';
 import authRoutes from './routes/authRoutes';
 
-// Import passport
+// Import passport AFTER dotenv.config()
 import passport from './config/passport';
 
 // Import middleware
@@ -20,9 +23,6 @@ import { errorHandler, notFound } from './middlewares/errorHandler';
 
 // Import database connection
 import connectDB from './config/database';
-
-// Load environment variables
-dotenv.config();
 
 const app = express();
 
