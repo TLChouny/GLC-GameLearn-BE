@@ -1,6 +1,6 @@
 import passport from 'passport';
-import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { Strategy as FacebookStrategy } from 'passport-facebook';
+import { Strategy as GoogleStrategy, Profile as GoogleProfile, VerifyCallback as GoogleVerifyCallback } from 'passport-google-oauth20';
+import { Strategy as FacebookStrategy, Profile as FacebookProfile } from 'passport-facebook';
 import bcrypt from 'bcryptjs';
 import  User  from '../models/User';
 
@@ -13,7 +13,7 @@ passport.use(
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
       callbackURL: `${backendUrl}/api/auth/google/callback`,
     },
-    async (_accessToken, _refreshToken, profile, done) => {
+    async (_accessToken: string, _refreshToken: string, profile: GoogleProfile, done: GoogleVerifyCallback) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error('No email from Google'));
@@ -59,7 +59,7 @@ passport.use(
       callbackURL: `${backendUrl}/api/auth/facebook/callback`,
       profileFields: ['id', 'displayName', 'emails', 'photos'],
     },
-    async (_accessToken, _refreshToken, profile, done) => {
+    async (_accessToken: string, _refreshToken: string, profile: FacebookProfile, done: (error: any, user?: any) => void) => {
       try {
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error('No email from Facebook'));
