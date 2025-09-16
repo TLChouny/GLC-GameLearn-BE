@@ -42,7 +42,9 @@ const corsOptions: cors.CorsOptions = {
   origin: (origin, callback) => {
     if (!origin) return callback(null, true);
     const normalizedOrigin = (origin || '').replace(/\/$/, '');
-    const isAllowed = allowedOrigins.includes(normalizedOrigin);
+    // Allow specific list OR any vercel.app subdomain (for preview deployments)
+    const isVercelPreview = /https?:\/\/([a-z0-9-]+\.)*vercel\.app$/i.test(normalizedOrigin);
+    const isAllowed = allowedOrigins.includes(normalizedOrigin) || isVercelPreview;
     if (!isAllowed) {
       console.warn(`[CORS] Blocked origin: ${normalizedOrigin}`);
     }
