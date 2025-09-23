@@ -14,6 +14,7 @@ import gameRoutes from './routes/gameRoutes';
 import itemRoutes from './routes/itemRoutes';
 import rankingRoutes from './routes/rankingRoutes';
 import authRoutes from './routes/authRoutes';
+import luckyWheelRoutes from './routes/luckyWheelRoutes';
 
 // Import passport AFTER dotenv.config()
 import passport from './config/passport';
@@ -28,6 +29,20 @@ const app = express();
 
 // Connect to database
 connectDB();
+
+// Tắt ETag để tránh 304 Not Modified từ cơ chế so khớp ETag
+app.set('etag', false);
+
+// Vô hiệu hoá cache cho các route API (đặc biệt GET /api/users)
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api/')) {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+    res.setHeader('Surrogate-Control', 'no-store');
+  }
+  next();
+});
 
 // CORS: allow both local and production FE domains
 const allowedOrigins = [
@@ -97,7 +112,7 @@ app.get('/', (req: Request, res: Response) => {
   res.status(200).json({
     success: true,
     message: 'GLC-GameLearn-BE API',
-    endpoints: ['/api/users', '/api/games', '/api/items', '/api/rankings', '/api/auth', '/health']
+    endpoints: ['/api/users', '/api/games', '/api/items', '/api/rankings', '/api/auth', '/api/lucky-wheels', '/health']
   });
 });
 
@@ -107,6 +122,7 @@ app.use('/api/games', gameRoutes);
 app.use('/api/items', itemRoutes);
 app.use('/api/rankings', rankingRoutes);
 app.use('/api/auth', authRoutes);
+app.use('/api/lucky-wheels', luckyWheelRoutes);
 
 // Error handling middleware
 app.use(notFound);

@@ -88,7 +88,7 @@ const UserSchema = new mongoose_1.Schema({
         }],
     houseDecorId: [{
             type: mongoose_1.Schema.Types.ObjectId,
-            ref: 'HouseDecord'
+            ref: 'HouseDecor'
         }],
     gameChallengeId: [{
             type: mongoose_1.Schema.Types.ObjectId,

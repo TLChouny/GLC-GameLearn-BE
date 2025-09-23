@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import Item from '../models/Item';
-import HouseDecord from '../models/HouseDecord';
+import HouseDecor from '../models/HouseDecor';
 import Trade from '../models/Trade';
 
 // Item Controllers
@@ -164,7 +164,7 @@ export const createHouseDecoration = async (req: Request, res: Response) => {
   try {
     const { houseName, houseDescription, itemId } = req.body;
 
-    const houseDecoration = new HouseDecord({
+    const houseDecoration = new HouseDecor({
       houseName,
       houseDescription,
       itemId
@@ -192,13 +192,13 @@ export const getAllHouseDecorations = async (req: Request, res: Response) => {
     const limit = parseInt(req.query.limit as string) || 10;
     const skip = (page - 1) * limit;
 
-    const houseDecorations = await HouseDecord.find()
+    const houseDecorations = await HouseDecor.find()
       .populate('itemId', 'itemName itemType itemPrice itemImage')
       .skip(skip)
       .limit(limit)
       .sort({ createdAt: -1 });
 
-    const total = await HouseDecord.countDocuments();
+    const total = await HouseDecor.countDocuments();
 
     res.status(200).json({
       success: true,

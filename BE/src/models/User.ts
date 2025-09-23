@@ -89,7 +89,7 @@ const UserSchema: Schema = new Schema({
   }],
   houseDecorId: [{
     type: Schema.Types.ObjectId,
-    ref: 'HouseDecord'
+    ref: 'HouseDecor'
   }],
   gameChallengeId: [{
     type: Schema.Types.ObjectId,

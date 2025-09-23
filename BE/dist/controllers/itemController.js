@@ -5,7 +5,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getTradeHistory = exports.createTrade = exports.getAllHouseDecorations = exports.createHouseDecoration = exports.deleteItem = exports.updateItem = exports.getItemById = exports.getAllItems = exports.createItem = void 0;
 const Item_1 = __importDefault(require("../models/Item"));
-const HouseDecord_1 = __importDefault(require("../models/HouseDecord"));
+const HouseDecor_1 = __importDefault(require("../models/HouseDecor"));
 const Trade_1 = __importDefault(require("../models/Trade"));
 // Item Controllers
 const createItem = async (req, res) => {
@@ -153,7 +153,7 @@ exports.deleteItem = deleteItem;
 const createHouseDecoration = async (req, res) => {
     try {
         const { houseName, houseDescription, itemId } = req.body;
-        const houseDecoration = new HouseDecord_1.default({
+        const houseDecoration = new HouseDecor_1.default({
             houseName,
             houseDescription,
             itemId
@@ -179,12 +179,12 @@ const getAllHouseDecorations = async (req, res) => {
         const page = parseInt(req.query.page) || 1;
         const limit = parseInt(req.query.limit) || 10;
         const skip = (page - 1) * limit;
-        const houseDecorations = await HouseDecord_1.default.find()
+        const houseDecorations = await HouseDecor_1.default.find()
             .populate('itemId', 'itemName itemType itemPrice itemImage')
             .skip(skip)
             .limit(limit)
             .sort({ createdAt: -1 });
-        const total = await HouseDecord_1.default.countDocuments();
+        const total = await HouseDecor_1.default.countDocuments();
         res.status(200).json({
             success: true,
             data: {
