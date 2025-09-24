@@ -1,4 +1,5 @@
 import express, { Request, Response } from 'express';
+import path from 'path';
 import cors from 'cors';
 import helmet from 'helmet';
 import morgan from 'morgan';
@@ -74,7 +75,10 @@ const corsOptions: cors.CorsOptions = {
 app.use(cors(corsOptions));
 
 // Security middleware (after CORS)
-app.use(helmet());
+// Allow embedding images from this server on other origins (FE localhost:5173)
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 
 // Rate limiting
 // Behind Render/Cloudflare; trust proxy so rate limiter uses X-Forwarded-For
@@ -115,6 +119,11 @@ app.get('/', (req: Request, res: Response) => {
     endpoints: ['/api/users', '/api/games', '/api/items', '/api/rankings', '/api/auth', '/api/lucky-wheels', '/health']
   });
 });
+
+// Static file serving for uploads (images)
+app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+// Also map BE/uploads for environments where cwd is project root
+app.use('/uploads', express.static(path.join(process.cwd(), 'BE', 'uploads')));
 
 // API routes
 app.use('/api/users', userRoutes);

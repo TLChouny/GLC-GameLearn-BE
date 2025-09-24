@@ -1,0 +1,28 @@
+{
+  "wheel": {
+    "wheelTitle": "Daily Lucky Wheel",
+    "wheelDescription": "Quay mỗi ngày, trúng quà liền tay",
+    "maxSpinPerDay": 3
+  },
+  "prizes": [
+    { "prizeName": "1.000 VND", "prizeType": "coins", "prizeValue": 1000, "probability": 8 },
+    { "prizeName": "2.000 VND", "prizeType": "coins", "prizeValue": 2000, "probability": 8 },
+    { "prizeName": "5.000 VND", "prizeType": "coins", "prizeValue": 5000, "probability": 7 },
+    { "prizeName": "10.000 VND", "prizeType": "coins", "prizeValue": 10000, "probability": 6 },
+    { "prizeName": "20.000 VND", "prizeType": "coins", "prizeValue": 20000, "probability": 5 },
+    { "prizeName": "50.000 VND", "prizeType": "coins", "prizeValue": 50000, "probability": 3 },
+    { "prizeName": "THÊM LƯỢT", "prizeType": "special", "prizeValue": 1, "probability": 5 },
+    { "prizeName": "x1 mảnh quần áo", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh quần áo", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh túi xách", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh túi xách", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh dây chuyền", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh dây chuyền", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh vòng tay", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh vòng tay", "prizeType": "item", "prizeValue": 1, "probability": 6 },
+    { "prizeName": "x1 mảnh 100.000 VND", "prizeType": "special", "prizeValue": 1, "probability": 3 },
+    { "prizeName": "x1 mảnh 200.000 VND", "prizeType": "special", "prizeValue": 1, "probability": 2 },
+    { "prizeName": "x1 mảnh 500.000 VND", "prizeType": "special", "prizeValue": 1, "probability": 1 }
+  ]
+}
+

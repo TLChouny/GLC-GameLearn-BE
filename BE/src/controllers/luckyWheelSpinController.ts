@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import LuckyWheel from '../models/LuckyWheel';
 import LuckyWheelPrize from '../models/LuckyWheelPrize';
 import LuckyWheelSpin from '../models/LuckyWheelSpin';
+import LuckyWheelDailyBonus from '../models/LuckyWheelDailyBonus';
 import User from '../models/User';
 
 // Kiểm tra số lượt quay còn lại trong ngày
@@ -14,8 +15,10 @@ const checkDailySpinLimit = async (userId: string, wheelId: string, maxSpinPerDa
     wheelId,
     createdAt: { $gte: today }
   });
-
-  return todaySpins < maxSpinPerDay;
+  const dateKey = today.toISOString().slice(0,10);
+  const bonus = await LuckyWheelDailyBonus.findOne({ userId, wheelId, dateKey });
+  const totalLimit = maxSpinPerDay + (bonus?.bonusSpins || 0);
+  return todaySpins < totalLimit;
 };
 
 // Logic quay vòng quay
@@ -74,17 +77,23 @@ export const spinLuckyWheel = async (req: Request, res: Response) => {
       });
     }
 
-    // Kiểm tra tổng probability = 100%
+    // Chuẩn hóa xác suất về tổng 100 nếu dữ liệu không đúng 100
     const totalProbability = prizes.reduce((sum, prize) => sum + prize.probability, 0);
-    if (Math.abs(totalProbability - 100) > 0.01) {
+    if (totalProbability <= 0) {
       return res.status(400).json({
         success: false,
-        message: 'Prize probabilities must sum to 100%'
+        message: 'Invalid prize probabilities'
       });
     }
+    const normalizedPrizes = Math.abs(totalProbability - 100) > 0.01
+      ? prizes.map((p: any) => ({
+          ...(typeof p.toObject === 'function' ? p.toObject() : p),
+          probability: (p.probability * 100) / totalProbability
+        }))
+      : prizes;
 
-    // Thực hiện quay
-    const winningPrize = spinWheel(prizes);
+    // Thực hiện quay với xác suất đã chuẩn hóa
+    const winningPrize = spinWheel(normalizedPrizes as any[]);
 
     // Lưu kết quả quay
     const spinResult = new LuckyWheelSpin({
@@ -96,7 +105,8 @@ export const spinLuckyWheel = async (req: Request, res: Response) => {
 
     await spinResult.save();
 
-    // Cập nhật điểm/items cho user nếu cần
+    // Cập nhật điểm/items hoặc bonus cho user nếu cần
+    let bonusAdded = 0;
     if (winningPrize.prizeType === 'points') {
       await User.findByIdAndUpdate(userId, {
         $inc: { points: winningPrize.prizeValue }
@@ -105,24 +115,41 @@ export const spinLuckyWheel = async (req: Request, res: Response) => {
       await User.findByIdAndUpdate(userId, {
         $addToSet: { itemId: winningPrize.itemId }
       });
+    } else if (winningPrize.prizeType === 'special' && winningPrize.prizeName === 'THÊM LƯỢT') {
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      const dateKey = today.toISOString().slice(0,10);
+      await LuckyWheelDailyBonus.findOneAndUpdate(
+        { userId, wheelId, dateKey },
+        { $inc: { bonusSpins: 2 } },
+        { upsert: true, new: true }
+      );
+      bonusAdded = 2;
     }
+
+    // Tính remainingSpins sau quay (có bonus)
+    const startOfDay = new Date();
+    startOfDay.setHours(0,0,0,0);
+    const dateKeyAfter = startOfDay.toISOString().slice(0,10);
+    const todaySpinsAfter = await LuckyWheelSpin.countDocuments({ userId, wheelId, createdAt: { $gte: startOfDay } });
+    const bonusAfter = await LuckyWheelDailyBonus.findOne({ userId, wheelId, dateKey: dateKeyAfter });
+    const totalLimitAfter = luckyWheel.maxSpinPerDay + (bonusAfter?.bonusSpins || 0);
+    const remainingSpinsAfter = Math.max(0, totalLimitAfter - todaySpinsAfter);
 
     res.status(200).json({
       success: true,
       message: 'Spin completed successfully',
       data: {
         spinResult: spinResult.spinResult,
+        prizeId: winningPrize._id,
         prize: {
           name: winningPrize.prizeName,
           type: winningPrize.prizeType,
           value: winningPrize.prizeValue,
           itemId: winningPrize.itemId
         },
-        remainingSpins: luckyWheel.maxSpinPerDay - (await LuckyWheelSpin.countDocuments({
-          userId,
-          wheelId,
-          createdAt: { $gte: new Date(new Date().setHours(0, 0, 0, 0)) }
-        }))
+        ...(bonusAdded > 0 ? { bonusAdded } : {}),
+        remainingSpins: remainingSpinsAfter
       }
     });
   } catch (error) {
@@ -279,8 +306,11 @@ export const getWheelInfo = async (req: Request, res: Response) => {
         wheelId,
         createdAt: { $gte: today }
       });
-      
-      remainingSpins = Math.max(0, luckyWheel.maxSpinPerDay - todaySpins);
+
+      const dateKey = today.toISOString().slice(0,10);
+      const bonus = await LuckyWheelDailyBonus.findOne({ userId, wheelId, dateKey });
+      const totalLimit = luckyWheel.maxSpinPerDay + (bonus?.bonusSpins || 0);
+      remainingSpins = Math.max(0, totalLimit - todaySpins);
     }
 
     res.status(200).json({
