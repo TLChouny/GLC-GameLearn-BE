@@ -4,6 +4,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const express_1 = __importDefault(require("express"));
+const path_1 = __importDefault(require("path"));
 const cors_1 = __importDefault(require("cors"));
 const helmet_1 = __importDefault(require("helmet"));
 const morgan_1 = __importDefault(require("morgan"));
@@ -27,6 +28,18 @@ const database_1 = __importDefault(require("./config/database"));
 const app = (0, express_1.default)();
 // Connect to database
 (0, database_1.default)();
+// Tắt ETag để tránh 304 Not Modified từ cơ chế so khớp ETag
+app.set('etag', false);
+// Vô hiệu hoá cache cho các route API (đặc biệt GET /api/users)
+app.use((req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+        res.setHeader('Surrogate-Control', 'no-store');
+    }
+    next();
+});
 // CORS: allow both local and production FE domains
 const allowedOrigins = [
     (process.env.FRONTEND_URL || 'http://localhost:5173').replace(/\/$/, ''),
@@ -55,7 +68,10 @@ const corsOptions = {
 };
 app.use((0, cors_1.default)(corsOptions));
 // Security middleware (after CORS)
-app.use((0, helmet_1.default)());
+// Allow embedding images from this server on other origins (FE localhost:5173)
+app.use((0, helmet_1.default)({
+    crossOriginResourcePolicy: { policy: 'cross-origin' }
+}));
 // Rate limiting
 // Behind Render/Cloudflare; trust proxy so rate limiter uses X-Forwarded-For
 app.set('trust proxy', 1);
@@ -90,6 +106,10 @@ app.get('/', (req, res) => {
         endpoints: ['/api/users', '/api/games', '/api/items', '/api/rankings', '/api/auth', '/api/lucky-wheels', '/health']
     });
 });
+// Static file serving for uploads (images)
+app.use('/uploads', express_1.default.static(path_1.default.join(process.cwd(), 'uploads')));
+// Also map BE/uploads for environments where cwd is project root
+app.use('/uploads', express_1.default.static(path_1.default.join(process.cwd(), 'BE', 'uploads')));
 // API routes
 app.use('/api/users', userRoutes_1.default);
 app.use('/api/games', gameRoutes_1.default);

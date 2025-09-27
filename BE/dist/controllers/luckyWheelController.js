@@ -183,7 +183,7 @@ const getLuckyWheelPrizes = async (req, res) => {
     try {
         const { wheelId } = req.params;
         const page = parseInt(req.query.page) || 1;
-        const limit = parseInt(req.query.limit) || 10;
+        const limit = parseInt(req.query.limit) || 50; // Tăng limit mặc định để lấy tất cả prizes
         const skip = (page - 1) * limit;
         const prizes = await LuckyWheelPrize_1.default.find({ wheelId })
             .populate('itemId', 'itemName itemType itemPrice itemImage')

@@ -196,7 +196,7 @@ export const getLuckyWheelPrizes = async (req: Request, res: Response) => {
   try {
     const { wheelId } = req.params;
     const page = parseInt(req.query.page as string) || 1;
-    const limit = parseInt(req.query.limit as string) || 10;
+    const limit = parseInt(req.query.limit as string) || 50; // Tăng limit mặc định để lấy tất cả prizes
     const skip = (page - 1) * limit;
 
     const prizes = await LuckyWheelPrize.find({ wheelId })
